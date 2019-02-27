@@ -1,22 +1,32 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+typedef OnDragUpdateListener = void Function(double dx, double dy);
 
 class CardWidget extends StatefulWidget {
   final int index;
 
-  const CardWidget({Key key, this.index}) : super(key: key);
+  final OnDragUpdateListener onDragUpdateListener;
+
+  const CardWidget({Key key, this.index, this.onDragUpdateListener})
+      : super(key: key);
 
   @override
   _CardWidgetState createState() => _CardWidgetState();
 }
 
-class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin{
-
+class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin {
   double _totalDx;
   double _totalDy;
 
-  Animation<Offset>  _animation;
+  Animation<Offset> _animation;
   AnimationController _animationController;
+
+  Set<int> _pointerSet = Set();
+
+  Size _widgetSize;
 
   @override
   void initState() {
@@ -25,40 +35,81 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin{
   }
 
   _onPointDown(PointerEvent event) {
-    double width = context.size.width;
-    double height = context.size.height;
+    _pointerSet.add(event.pointer);
+    if (_widgetSize == null) {
+      setState(() {
+        _widgetSize = Size(context.size.width, context.size.height);
+      });
+    }
   }
 
   _onPointMove(PointerEvent event) {
+    _totalDx += event.delta.dx;
+    _totalDy += event.delta.dy;
+    if (widget.onDragUpdateListener != null) {
+      widget.onDragUpdateListener(_totalDx, _totalDy);
+    }
     setState(() {
-      _totalDx += event.delta.dx;
-      _totalDy += event.delta.dy;
     });
   }
 
   _onPointUpOrCancel(PointerEvent event) {
+    var pointer = event.pointer;
+    _pointerSet.remove(pointer);
+    if (_pointerSet.isNotEmpty) {
+      return;
+    }
     setState(() {
       _totalDx += event.delta.dx;
       _totalDy += event.delta.dy;
     });
-    _startAnimator();
+    if (_totalDx.abs() >= context.size.width * 0.2 ||
+        _totalDy.abs() >= context.size.height * 0.2) {
+      double endX, endY;
+      if (_totalDx.abs() > _totalDy.abs()) {
+        endX = context.size.width * _totalDx.sign;
+        endY = _totalDy.sign *
+            context.size.width *
+            _totalDy.abs() /
+            _totalDx.abs();
+      } else {
+        endY = context.size.height * _totalDy.sign;
+        endX = _totalDx.sign *
+            context.size.height *
+            _totalDx.abs() /
+            _totalDy.abs();
+      }
+      _startAnimator(Offset(_totalDx, _totalDy), Offset(endX, endY));
+    } else {
+      _startAnimator(Offset(_totalDx, _totalDy), Offset.zero);
+    }
   }
 
-  _startAnimator(){
-    _animationController = AnimationController(duration: Duration(milliseconds: 300),vsync: this);
-    _animation = Tween(begin: Offset(_totalDx,_totalDy),end: Offset.zero).animate(CurvedAnimation(parent: _animationController, curve:  Curves.linear));
-    _animationController.addListener((){
+  _startAnimator(Offset begin, Offset end) {
+    _animationController =
+        AnimationController(duration: Duration(milliseconds: 200), vsync: this);
+    _animation = Tween(begin: begin, end: end).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.linear));
+    _animationController.addListener(() {
       setState(() {
         _totalDx = _animation.value.dx;
         _totalDy = _animation.value.dy;
       });
+    });
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _totalDx = 0;
+          _totalDy = 0;
+        });
+      }
     });
     _animationController.forward();
   }
 
   @override
   void dispose() {
-    if(_animationController!=null){
+    if (_animationController != null) {
       _animationController.dispose();
     }
     super.dispose();
@@ -66,7 +117,21 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context) {
-
+    double ratio = 0;
+    if (_widgetSize != null) {
+      ratio = sqrt(_totalDx * _totalDx + _totalDy * _totalDy) /
+          (sqrt(_widgetSize.width * _widgetSize.width +
+                  _widgetSize.height * _widgetSize.height) *
+              0.2);
+    }
+    if (ratio > 1) {
+      ratio = 1;
+    }
+    if (ratio < 0) {
+      ratio = 0;
+    }
+    double dx = (widget.index == 0 ? _totalDx : ratio * -12);
+    double dy = (widget.index == 0 ? _totalDy : ratio * 12);
     return Container(
         alignment: Alignment.center,
         padding: EdgeInsets.only(left: 24, right: 24),
@@ -74,8 +139,8 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin{
             aspectRatio: 0.75,
             child: Transform(
               transform: Matrix4.translationValues(
-                  (widget.index==0?_totalDx:0)+(12 * widget.index.toDouble()),
-                  (widget.index==0?_totalDy:0)+(-12 * widget.index.toDouble()),
+                  dx + (12 * widget.index.toDouble()),
+                  dy + (-12 * widget.index.toDouble()),
                   0),
               child: Listener(
                   onPointerDown: _onPointDown,
