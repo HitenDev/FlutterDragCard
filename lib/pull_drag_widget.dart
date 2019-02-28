@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:drag_card/eventbus.dart';
 import 'package:drag_card/orntdrag.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,12 @@ class PullDragWidget extends StatefulWidget {
   final double parallaxRatio;
 
   const PullDragWidget(
-      {Key key, this.header, this.child, this.dragHeight, this.dragRatio = 0.4, this.parallaxRatio = 0.2})
+      {Key key,
+      this.header,
+      this.child,
+      this.dragHeight,
+      this.dragRatio = 0.4,
+      this.parallaxRatio = 0.2})
       : super(key: key);
 
   @override
@@ -52,10 +58,9 @@ class _PullDragWidgetState extends State<PullDragWidget>
     });
     _contentGestures = {
       DirectionGestureRecognizer:
-      GestureRecognizerFactoryWithHandlers<DirectionGestureRecognizer>(
-              () =>
-              DirectionGestureRecognizer(
-                  DirectionGestureRecognizer.down), (instance) {
+          GestureRecognizerFactoryWithHandlers<DirectionGestureRecognizer>(
+              () => DirectionGestureRecognizer(DirectionGestureRecognizer.down),
+              (instance) {
         instance.onDown = _onDragDown;
         instance.onStart = _onDragStart;
         instance.onUpdate = _onDragUpdate;
@@ -63,6 +68,13 @@ class _PullDragWidgetState extends State<PullDragWidget>
         instance.onEnd = _onDragEnd;
       })
     };
+    bus.on("openCard", (open) {
+      if (open) {
+        if (!_opened) _smoothOpen();
+      } else {
+        _smoothClose();
+      }
+    });
     super.initState();
   }
 

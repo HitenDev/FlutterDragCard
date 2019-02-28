@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drag_card/colors.dart';
 import 'package:drag_card/entity.dart';
+import 'package:drag_card/eventbus.dart';
 import 'package:drag_card/main_card_widget.dart';
 import 'package:drag_card/pull_drag_widget.dart';
 import 'package:flutter/material.dart';
@@ -116,33 +117,33 @@ class _HomePagerState extends State<HomePager> {
           children: _toolbarList.map<Widget>((item) {
             return Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () {
-                        _onHeaderItemClick(item);
-                      },
-                      child: ClipOval(
-                        child: Image.network(
-                          item.picUrl,
-                          width: 66,
-                          height: 66,
-                        ),
-                      ),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () {
+                    _onHeaderItemClick(item);
+                  },
+                  child: ClipOval(
+                    child: Image.network(
+                      item.picUrl,
+                      width: 66,
+                      height: 66,
                     ),
-                    Container(
-                      height: 6,
-                    ),
-                    Text(
-                      item.title,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xff333333),
-                          decoration: TextDecoration.none),
-                    )
-                  ],
-                ));
+                  ),
+                ),
+                Container(
+                  height: 6,
+                ),
+                Text(
+                  item.title,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xff333333),
+                      decoration: TextDecoration.none),
+                )
+              ],
+            ));
           }).toList());
     }
 
@@ -167,11 +168,38 @@ class _HomePagerState extends State<HomePager> {
               left: 0,
               right: 0,
               child: Container(
+                padding: EdgeInsets.only(left: 20, right: 20),
                 height: 100,
+                child: _createOptMenus(),
               )),
           CardStackWidget(cardList: _cardList)
         ],
       );
     }
+  }
+
+  Widget _createOptMenus() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        _createMenu("assets/drawable/ic_discover_next_card_back.png",
+            () => bus.emit("openCard", true)),
+        _createMenu("assets/drawable/ic_discover_more.png",
+            () => bus.emit("openCard", true)),
+        _createMenu("assets/drawable/ic_discover_next_card_right.png",
+            () => bus.emit("openCard", true)),
+      ],
+    );
+  }
+
+  Widget _createMenu(String picUrl, GestureTapCallback onTap) {
+    return Expanded(
+        child: GestureDetector(
+            onTap: onTap,
+            child: Image.asset(
+              picUrl,
+              width: 48,
+              height: 48,
+            )));
   }
 }
