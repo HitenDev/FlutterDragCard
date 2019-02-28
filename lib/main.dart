@@ -96,11 +96,11 @@ class _HomePagerState extends State<HomePager> {
   Widget build(BuildContext context) {
     return Container(
         color: Colors.white,
-        child: PullDragWidget(
-          dragHeight: 120,
+        child: SafeArea(child: PullDragWidget(
+          dragHeight: 140,
           header: _createHeader(),
           child: _createContent(),
-        ));
+        )));
   }
 
   _onHeaderItemClick(ToolBarEntity item) {
@@ -164,14 +164,13 @@ class _HomePagerState extends State<HomePager> {
         children: <Widget>[
           Positioned(
               bottom: 0,
-              height: 100,
               left: 0,
               right: 0,
-              child: Container(
-                padding: EdgeInsets.only(left: 20, right: 20),
+              child: SafeArea(child: Container(
                 height: 100,
+                padding: EdgeInsets.only(left: 20, right: 20),
                 child: _createOptMenus(),
-              )),
+              ))),
           CardStackWidget(cardList: _cardList)
         ],
       );

@@ -68,20 +68,23 @@ class _PullDragWidgetState extends State<PullDragWidget>
         instance.onEnd = _onDragEnd;
       })
     };
-    bus.on("openCard", (open) {
-      if (open) {
-        if (!_opened) _smoothOpen();
-      } else {
-        _smoothClose();
-      }
-    });
+    bus.on("openCard", openCard);
     super.initState();
+  }
+
+  void openCard(open){
+    if (open) {
+      if (!_opened) _smoothOpen();
+    } else {
+      _smoothClose();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
     _animationController?.dispose();
+    bus.off("openCard", openCard);
   }
 
   Widget _headerWidget() {
@@ -128,7 +131,7 @@ class _PullDragWidgetState extends State<PullDragWidget>
     }
 
     if (!_opened) {
-      if (_offsetY.abs() > widget.dragHeight * 0.3) {
+      if (_offsetY.abs() > widget.dragHeight * 0.2) {
         _smoothOpen();
       } else {
         _smoothClose();

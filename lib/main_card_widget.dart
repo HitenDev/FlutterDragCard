@@ -70,6 +70,9 @@ class _CardStackWidgetState extends State<CardStackWidget>
   }
 
   _onPanEnd(DragEndDetails details) {
+    if (_isAnimating) {
+      return;
+    }
     _isDragging = false;
     if (_totalDx.abs() >= context.size.width * 0.1 ||
         _totalDy.abs() >= context.size.height * 0.1) {
