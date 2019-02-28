@@ -209,12 +209,12 @@ abstract class _DragGestureRecognizer extends OneSequenceGestureRecognizer {
   }
 }
 
-typedef ChangeGestureOrientation = int Function();
+typedef ChangeGestureDirection = int Function();
 
-class OrientationGestureRecognizer extends _DragGestureRecognizer {
-  int orientation;
+class DirectionGestureRecognizer extends _DragGestureRecognizer {
+  int direction;
 
-  final ChangeGestureOrientation changeGestureOrientation;
+  ChangeGestureDirection changeGestureDirection;
 
   static int left = 1 << 1;
   static int right = 1 << 2;
@@ -222,20 +222,19 @@ class OrientationGestureRecognizer extends _DragGestureRecognizer {
   static int down = 1 << 4;
   static int all = left | right | up | down;
 
-  OrientationGestureRecognizer(this.orientation, this.changeGestureOrientation,
+  DirectionGestureRecognizer(this.direction,
       {Object debugOwner})
       : super(debugOwner: debugOwner);
 
   @override
   bool _isFlingGesture(VelocityEstimate estimate) {
-    if (changeGestureOrientation != null) {
-      orientation = changeGestureOrientation();
+    if (changeGestureDirection != null) {
+      direction = changeGestureDirection();
     }
     final double minVelocity = minFlingVelocity ?? kMinFlingVelocity;
     final double minDistance = minFlingDistance ?? kTouchSlop;
     if (_hasAll) {
-      return estimate.pixelsPerSecond.distanceSquared >
-              minVelocity &&
+      return estimate.pixelsPerSecond.distanceSquared > minVelocity &&
           estimate.offset.distanceSquared > minDistance;
     } else {
       bool result = false;
@@ -251,26 +250,26 @@ class OrientationGestureRecognizer extends _DragGestureRecognizer {
     }
   }
 
-  bool get _hasLeft => _has(OrientationGestureRecognizer.left);
+  bool get _hasLeft => _has(DirectionGestureRecognizer.left);
 
-  bool get _hasRight => _has(OrientationGestureRecognizer.right);
+  bool get _hasRight => _has(DirectionGestureRecognizer.right);
 
-  bool get _hasUp => _has(OrientationGestureRecognizer.up);
+  bool get _hasUp => _has(DirectionGestureRecognizer.up);
 
-  bool get _hasDown => _has(OrientationGestureRecognizer.down);
+  bool get _hasDown => _has(DirectionGestureRecognizer.down);
   bool get _hasHorizontal => _hasLeft || _hasRight;
   bool get _hasVertical => _hasUp || _hasDown;
 
   bool get _hasAll => _hasLeft && _hasRight && _hasUp && _hasDown;
 
   bool _has(int flag) {
-    return (orientation & flag) != 0;
+    return (direction & flag) != 0;
   }
 
   @override
   bool get _hasSufficientPendingDragDeltaToAccept {
-    if (changeGestureOrientation != null) {
-      orientation = changeGestureOrientation();
+    if (changeGestureDirection != null) {
+      direction = changeGestureDirection();
     }
     // if (_hasAll) {
     //   return _pendingDragOffset.distance > kPanSlop;
@@ -316,5 +315,50 @@ class OrientationGestureRecognizer extends _DragGestureRecognizer {
   }
 
   @override
-  String get debugDescription => 'orientation_' + orientation.toString();
+  String get debugDescription => 'orientation_' + direction.toString();
+}
+
+class IgnorePanGestureRecognizer extends _DragGestureRecognizer {
+  final int ignoreDirection;
+
+  static int left = 1;
+  static int right = 2;
+  static int up = 3;
+  static int down = 4;
+
+  IgnorePanGestureRecognizer(this.ignoreDirection, {Object debugOwner})
+      : super(debugOwner: debugOwner);
+
+  @override
+  bool _isFlingGesture(VelocityEstimate estimate) {
+    final double minVelocity = minFlingVelocity ?? kMinFlingVelocity;
+    final double minDistance = minFlingDistance ?? kTouchSlop;
+    return estimate.pixelsPerSecond.distanceSquared >
+        minVelocity * minVelocity &&
+        estimate.offset.distanceSquared > minDistance * minDistance;
+  }
+
+  @override
+  bool get _hasSufficientPendingDragDeltaToAccept {
+    bool ignore = false;
+    if (ignoreDirection == left) {
+      ignore = _pendingDragOffset.dx <= -kTouchSlop;
+    } else if (ignoreDirection == right) {
+      ignore = _pendingDragOffset.dx >= kTouchSlop;
+    } else if (ignoreDirection == up) {
+      ignore = _pendingDragOffset.dy <= -kTouchSlop;
+    } else if (ignoreDirection == down) {
+      ignore = _pendingDragOffset.dy >= kTouchSlop;
+    }
+    return !ignore && _pendingDragOffset.distance > kPanSlop;
+  }
+
+  @override
+  Offset _getDeltaForDetails(Offset delta) => delta;
+
+  @override
+  double _getPrimaryValueFromOffset(Offset value) => null;
+
+  @override
+  String get debugDescription => 'pan';
 }
