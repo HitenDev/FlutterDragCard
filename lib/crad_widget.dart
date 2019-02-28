@@ -24,9 +24,9 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin {
   Animation<Offset> _animation;
   AnimationController _animationController;
 
-  Set<int> _pointerSet = Set();
-
   Size _widgetSize;
+
+  bool _dragging = false;
 
   @override
   void initState() {
@@ -34,8 +34,7 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin {
     super.initState();
   }
 
-  _onPointDown(PointerEvent event) {
-    _pointerSet.add(event.pointer);
+  _onPanDown(DragDownDetails details) {
     if (_widgetSize == null) {
       setState(() {
         _widgetSize = Size(context.size.width, context.size.height);
@@ -43,26 +42,21 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin {
     }
   }
 
-  _onPointMove(PointerEvent event) {
-    _totalDx += event.delta.dx;
-    _totalDy += event.delta.dy;
-    if (widget.onDragUpdateListener != null) {
-      widget.onDragUpdateListener(_totalDx, _totalDy);
-    }
-    setState(() {
-    });
-  }
-
-  _onPointUpOrCancel(PointerEvent event) {
-    var pointer = event.pointer;
-    _pointerSet.remove(pointer);
-    if (_pointerSet.isNotEmpty) {
+  _onPanUpdate(DragUpdateDetails details) {
+    if (!_dragging) {
+      _dragging = true;
       return;
     }
-    setState(() {
-      _totalDx += event.delta.dx;
-      _totalDy += event.delta.dy;
-    });
+    _totalDx += details.delta.dx;
+    _totalDy += details.delta.dy;
+    if (widget.onDragUpdateListener != null) {
+      // widget.onDragUpdateListener(_totalDx, _totalDy);
+    }
+    setState(() {});
+  }
+
+  _onPanEnd(DragEndDetails details) {
+    _dragging = false;
     if (_totalDx.abs() >= context.size.width * 0.2 ||
         _totalDy.abs() >= context.size.height * 0.2) {
       double endX, endY;
@@ -142,12 +136,11 @@ class _CardWidgetState extends State<CardWidget> with TickerProviderStateMixin {
                   dx + (12 * widget.index.toDouble()),
                   dy + (-12 * widget.index.toDouble()),
                   0),
-              child: Listener(
-                  onPointerDown: _onPointDown,
-                  onPointerMove: _onPointMove,
-                  onPointerUp: _onPointUpOrCancel,
-                  onPointerCancel: _onPointUpOrCancel,
-                  behavior: HitTestBehavior.translucent,
+              child: GestureDetector(
+                  onPanDown: _onPanDown,
+                  onPanUpdate: _onPanUpdate,
+                  onPanEnd: _onPanEnd,
+                  behavior: HitTestBehavior.deferToChild,
                   child: Container(
                     constraints: BoxConstraints.expand(),
                     child: ClipRRect(

@@ -31,7 +31,6 @@ class _PullDragWidgetState extends State<PullDragWidget>
 
   @override
   void initState() {
-    super.initState();
     _offsetY = 0;
     _animationController =
         AnimationController(duration: Duration(milliseconds: 200), vsync: this);
@@ -48,13 +47,34 @@ class _PullDragWidgetState extends State<PullDragWidget>
       } else if (_offsetY == widget.maxHeight) {
         _opened = true;
       }
+      setState(() {});
     });
+    _contentGestures = {
+        OrientationGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<OrientationGestureRecognizer>(
+                () => OrientationGestureRecognizer(
+                    OrientationGestureRecognizer.down,changeGestureOrientation), (instance) {
+          instance.onDown = _onDragDown;
+          instance.onStart = _onDragStart;
+          instance.onUpdate = _onDragUpdate;
+          instance.onCancel = _onDragCancel;
+          instance.onEnd = _onDragEnd;
+        })
+      };
+       super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
     _animationController?.dispose();
+  }
+
+  int changeGestureOrientation(){
+      if (_opened) {
+        return OrientationGestureRecognizer.all;
+      }
+      return OrientationGestureRecognizer.down;
   }
 
   Widget _headerWidget() {
@@ -68,6 +88,10 @@ class _PullDragWidgetState extends State<PullDragWidget>
   }
 
   _onDragStart(DragStartDetails details) {}
+
+   _onDragDown(DragDownDetails details) {
+      setState(() {});
+   }
 
   _onDragUpdate(DragUpdateDetails details) {
     _offsetY += widget.dragRatio * details.delta.dy;
@@ -88,12 +112,14 @@ class _PullDragWidgetState extends State<PullDragWidget>
       if (_opened) {
         _opened = false;
       }
+      setState(() {});
       return;
     }
     if (_offsetY == widget.maxHeight) {
       if (!_opened) {
         _opened = true;
       }
+      setState(() {});
       return;
     }
 
@@ -122,20 +148,8 @@ class _PullDragWidgetState extends State<PullDragWidget>
     _animationController?.reverse();
   }
 
-  Map<Type, GestureRecognizerFactory> get contentGestures {
-    return {
-      OrientationGestureRecognizer:
-          GestureRecognizerFactoryWithHandlers<OrientationGestureRecognizer>(
-              () => OrientationGestureRecognizer(
-                  OrientationGestureRecognizer.down |
-                      OrientationGestureRecognizer.up), (instance) {
-        instance.onStart = _onDragStart;
-        instance.onUpdate = _onDragUpdate;
-        instance.onCancel = _onDragCancel;
-        instance.onEnd = _onDragEnd;
-      })
-    };
-  }
+  Map<Type, GestureRecognizerFactory> _contentGestures;
+
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +158,8 @@ class _PullDragWidgetState extends State<PullDragWidget>
         child: Stack(
           children: <Widget>[
             RawGestureDetector(
-              gestures: contentGestures,
+              behavior: HitTestBehavior.opaque,
+              gestures: _contentGestures,
               child: widget.child,
             ),
             _headerWidget()

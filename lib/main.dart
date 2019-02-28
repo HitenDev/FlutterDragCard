@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         child: Container(
           color: Colors.red,
           alignment: Alignment.center,
-          child: Text("Content"),
+          child: MainCardWidget(),
         ),
       ),
     );
@@ -45,7 +45,7 @@ class TouchParent extends StatelessWidget {
         GestureRecognizerFactoryWithHandlers<OrientationGestureRecognizer>(
             () => OrientationGestureRecognizer(
                 OrientationGestureRecognizer.left |
-                    OrientationGestureRecognizer.right),
+                    OrientationGestureRecognizer.right,null),
             (OrientationGestureRecognizer instance) {
       instance.onStart = (details) {
         print("TouchParent onStart");
@@ -88,7 +88,7 @@ class TouchChild extends StatelessWidget {
         GestureRecognizerFactoryWithHandlers<OrientationGestureRecognizer>(
             () => OrientationGestureRecognizer(
                 OrientationGestureRecognizer.up |
-                    OrientationGestureRecognizer.down),
+                    OrientationGestureRecognizer.down,null),
             (OrientationGestureRecognizer instance) {
       instance.onStart = (details) {
         print("TouchChild onStart");

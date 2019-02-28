@@ -209,25 +209,34 @@ abstract class _DragGestureRecognizer extends OneSequenceGestureRecognizer {
   }
 }
 
+typedef ChangeGestureOrientation = int Function();
+
 class OrientationGestureRecognizer extends _DragGestureRecognizer {
-  final int orientation;
+  int orientation;
+
+  final ChangeGestureOrientation changeGestureOrientation;
 
   static int left = 1 << 1;
   static int right = 1 << 2;
   static int up = 1 << 3;
   static int down = 1 << 4;
+  static int all = left | right | up | down;
 
-  OrientationGestureRecognizer(this.orientation, {Object debugOwner})
+  OrientationGestureRecognizer(this.orientation, this.changeGestureOrientation,
+      {Object debugOwner})
       : super(debugOwner: debugOwner);
 
   @override
   bool _isFlingGesture(VelocityEstimate estimate) {
+    if (changeGestureOrientation != null) {
+      orientation = changeGestureOrientation();
+    }
     final double minVelocity = minFlingVelocity ?? kMinFlingVelocity;
     final double minDistance = minFlingDistance ?? kTouchSlop;
     if (_hasAll) {
       return estimate.pixelsPerSecond.distanceSquared >
-              minVelocity * minVelocity &&
-          estimate.offset.distanceSquared > minDistance * minDistance;
+              minVelocity &&
+          estimate.offset.distanceSquared > minDistance;
     } else {
       bool result = false;
       if (_hasVertical) {
@@ -260,9 +269,12 @@ class OrientationGestureRecognizer extends _DragGestureRecognizer {
 
   @override
   bool get _hasSufficientPendingDragDeltaToAccept {
-    if (_hasAll) {
-      return _pendingDragOffset.distance > kPanSlop;
+    if (changeGestureOrientation != null) {
+      orientation = changeGestureOrientation();
     }
+    // if (_hasAll) {
+    //   return _pendingDragOffset.distance > kPanSlop;
+    // }
     bool result = false;
     if (_hasUp) {
       result |= _pendingDragOffset.dy < -kTouchSlop;
