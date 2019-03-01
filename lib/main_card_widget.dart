@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:drag_card/entity.dart';
 import 'package:drag_card/orntdrag.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CardStackWidget extends StatefulWidget {
   final List<CardEntity> cardList;
@@ -26,25 +28,34 @@ class _CardStackWidgetState extends State<CardStackWidget>
   double _totalDy;
   Map<Type, GestureRecognizerFactory> _cardGestures;
   AnimationController _animationController;
-  bool _isDragging;
+  bool _isDragging = false;
 
   @override
   void initState() {
     _totalDx = _totalDy = 0;
     _cardGestures = {
       DirectionGestureRecognizer:
-      GestureRecognizerFactoryWithHandlers<DirectionGestureRecognizer>(
-              () =>
-              DirectionGestureRecognizer(
-                  DirectionGestureRecognizer.left | DirectionGestureRecognizer
-                      .right | DirectionGestureRecognizer.up),
-              (instance) {
-            instance.onDown = _onPanDown;
-            instance.onUpdate = _onPanUpdate;
-            instance.onEnd = _onPanEnd;
-          })
+          GestureRecognizerFactoryWithHandlers<DirectionGestureRecognizer>(
+              () => DirectionGestureRecognizer(DirectionGestureRecognizer.left |
+                  DirectionGestureRecognizer.right |
+                  DirectionGestureRecognizer.up), (instance) {
+        instance.onDown = _onPanDown;
+        instance.onUpdate = _onPanUpdate;
+        instance.onEnd = _onPanEnd;
+      }),
+      TapGestureRecognizer:
+          GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+              () => TapGestureRecognizer(), (instance) {
+        instance.onTap = _onCardTap;
+      })
     };
     super.initState();
+  }
+
+  _onCardTap() {
+    if (widget.cardList != null && widget.cardList.length > 0) {
+      Fluttertoast.showToast(msg: widget.cardList[0].text);
+    }
   }
 
   _onPanDown(DragDownDetails details) {
@@ -205,8 +216,7 @@ class _CardWidget extends StatelessWidget {
                         letterSpacing: 2,
                         fontSize: 22,
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.none),
+                        fontWeight: FontWeight.bold),
                     maxLines: 4,
                   ),
                 )

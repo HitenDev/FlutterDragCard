@@ -12,6 +12,7 @@ class PullDragWidget extends StatefulWidget {
   final double dragHeight;
   final double dragRatio;
   final double parallaxRatio;
+  final double thresholdRatio;
 
   const PullDragWidget(
       {Key key,
@@ -19,8 +20,13 @@ class PullDragWidget extends StatefulWidget {
       this.child,
       this.dragHeight,
       this.dragRatio = 0.4,
-      this.parallaxRatio = 0.2})
-      : super(key: key);
+      this.parallaxRatio = 0.2,
+      this.thresholdRatio = 0.2})
+      : assert(dragHeight > 0),
+        assert(dragRatio > 0 && dragRatio <= 1.0),
+        assert(parallaxRatio > 0 && parallaxRatio <= 1.0),
+        assert(thresholdRatio > 0 && thresholdRatio <= 1.0),
+        super(key: key);
 
   @override
   _PullDragWidgetState createState() => _PullDragWidgetState();
@@ -43,7 +49,6 @@ class _PullDragWidgetState extends State<PullDragWidget>
         AnimationController(duration: Duration(milliseconds: 200), vsync: this);
     _animationController.addListener(() {
       var value = _animationController.value * widget.dragHeight;
-      print(value);
       _offsetY = value;
       _offsetY = max(0, min(widget.dragHeight, _offsetY));
       setState(() {});
@@ -66,13 +71,24 @@ class _PullDragWidgetState extends State<PullDragWidget>
         instance.onUpdate = _onDragUpdate;
         instance.onCancel = _onDragCancel;
         instance.onEnd = _onDragEnd;
+      }),
+      TapGestureRecognizer:
+          GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+              () => TapGestureRecognizer(), (instance) {
+        instance.onTap = _onContentTap;
       })
     };
     bus.on("openCard", openCard);
     super.initState();
   }
 
-  void openCard(open){
+  _onContentTap() {
+    if (_opened) {
+      _smoothClose();
+    }
+  }
+
+  void openCard(open) {
     if (open) {
       if (!_opened) _smoothOpen();
     } else {
@@ -131,7 +147,7 @@ class _PullDragWidgetState extends State<PullDragWidget>
     }
 
     if (!_opened) {
-      if (_offsetY.abs() > widget.dragHeight * 0.2) {
+      if (_offsetY.abs() > widget.dragHeight * widget.thresholdRatio) {
         _smoothOpen();
       } else {
         _smoothClose();
@@ -146,11 +162,17 @@ class _PullDragWidgetState extends State<PullDragWidget>
   }
 
   _smoothOpen() {
+    if (_offsetY == widget.dragHeight) {
+      return;
+    }
     _animationController.value = _offsetY / widget.dragHeight;
     _animationController?.forward();
   }
 
   _smoothClose() {
+    if (_offsetY == 0) {
+      return;
+    }
     _animationController.value = _offsetY / widget.dragHeight;
     _animationController?.reverse();
   }

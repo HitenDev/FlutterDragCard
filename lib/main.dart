@@ -1,12 +1,13 @@
 import 'dart:convert';
 
-import 'package:drag_card/colors.dart';
 import 'package:drag_card/entity.dart';
 import 'package:drag_card/eventbus.dart';
 import 'package:drag_card/main_card_widget.dart';
 import 'package:drag_card/pull_drag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,10 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Darg Card Sample',
-      theme: ThemeData(
-        backgroundColor: background,
+      home: Scaffold(
+        body: HomePager(),
       ),
-      home: HomePager(),
     );
   }
 }
@@ -96,7 +96,8 @@ class _HomePagerState extends State<HomePager> {
   Widget build(BuildContext context) {
     return Container(
         color: Colors.white,
-        child: SafeArea(child: PullDragWidget(
+        child: SafeArea(
+            child: PullDragWidget(
           dragHeight: 140,
           header: _createHeader(),
           child: _createContent(),
@@ -104,7 +105,7 @@ class _HomePagerState extends State<HomePager> {
   }
 
   _onHeaderItemClick(ToolBarEntity item) {
-    print(item.title);
+    Fluttertoast.showToast(msg: item.title);
   }
 
   Widget _createHeader() {
@@ -116,38 +117,33 @@ class _HomePagerState extends State<HomePager> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: _toolbarList.map<Widget>((item) {
             return Expanded(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    _onHeaderItemClick(item);
-                  },
-                  child: ClipOval(
-                    child: Image.network(
-                      item.picUrl,
-                      width: 66,
-                      height: 66,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 6,
-                ),
-                Text(
-                  item.title,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xff333333),
-                      decoration: TextDecoration.none),
-                )
-              ],
-            ));
+                child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      _onHeaderItemClick(item);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        ClipOval(
+                          child: FadeInImage.memoryNetwork(image: item.picUrl,placeholder: kTransparentImage,width: 62,height: 62),
+                        ),
+                        Container(
+                          height: 6,
+                        ),
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xff333333),),
+                        )
+                      ],
+                    )));
           }).toList());
     }
 
-    return header;
+    return Container(padding:EdgeInsets.only(left: 10,right: 10),child: header);
   }
 
   Widget _createContent() {
@@ -155,7 +151,6 @@ class _HomePagerState extends State<HomePager> {
       return Container(
         child: Text(
           "Loading...",
-          style: TextStyle(decoration: TextDecoration.none),
         ),
         alignment: Alignment.center,
       );
@@ -166,11 +161,11 @@ class _HomePagerState extends State<HomePager> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: SafeArea(child: Container(
+              child: Container(
                 height: 100,
                 padding: EdgeInsets.only(left: 20, right: 20),
                 child: _createOptMenus(),
-              ))),
+              )),
           CardStackWidget(cardList: _cardList)
         ],
       );
@@ -181,24 +176,24 @@ class _HomePagerState extends State<HomePager> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        _createMenu("assets/drawable/ic_discover_next_card_back.png",
-            () => bus.emit("openCard", true)),
+        _createMenu("assets/drawable/ic_discover_next_card_back.png", null),
         _createMenu("assets/drawable/ic_discover_more.png",
             () => bus.emit("openCard", true)),
-        _createMenu("assets/drawable/ic_discover_next_card_right.png",
-            () => bus.emit("openCard", true)),
+        _createMenu("assets/drawable/ic_discover_next_card_right.png", null),
       ],
     );
   }
 
   Widget _createMenu(String picUrl, GestureTapCallback onTap) {
     return Expanded(
-        child: GestureDetector(
+        child: Container(
+          alignment: Alignment.center,
+          child: GestureDetector(
             onTap: onTap,
             child: Image.asset(
               picUrl,
               width: 48,
               height: 48,
-            )));
+            ))));
   }
 }
