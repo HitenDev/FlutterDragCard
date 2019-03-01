@@ -12,10 +12,18 @@ class CardStackWidget extends StatefulWidget {
 
   final int cardCount;
   final double offset;
+  final EdgeInsetsGeometry cardPadding;
 
   const CardStackWidget(
-      {Key key, this.cardList, this.cardCount = 2, this.offset = 12})
-      : super(key: key);
+      {Key key,
+      this.cardList,
+      this.cardCount = 2,
+      this.offset = 10,
+      this.cardPadding = const EdgeInsets.only(left: 20, right: 20, top: 60)})
+      : assert(cardPadding != null),
+        assert(cardCount != null),
+        assert(offset != null),
+        super(key: key);
 
   @override
   _CardStackWidgetState createState() => _CardStackWidgetState();
@@ -159,7 +167,12 @@ class _CardStackWidgetState extends State<CardStackWidget>
       double dx = i == 0 ? _totalDx : -_ratio * widget.offset;
       double dy = i == 0 ? _totalDy : _ratio * widget.offset;
       Widget cardWidget = _CardWidget(
-          cardEntity: widget.cardList[i], position: i, dx: dx, dy: dy);
+        cardEntity: widget.cardList[i],
+        position: i,
+        dx: dx,
+        dy: dy,
+        offset: widget.offset,
+      );
       if (i == 0) {
         cardWidget = RawGestureDetector(
           gestures: _cardGestures,
@@ -170,7 +183,7 @@ class _CardStackWidgetState extends State<CardStackWidget>
       children.add(Container(
         child: cardWidget,
         alignment: Alignment.topCenter,
-        padding: EdgeInsets.only(left: 24, right: 24, top: 60),
+        padding: widget.cardPadding,
       ));
     }
     return Stack(
@@ -184,9 +197,15 @@ class _CardWidget extends StatelessWidget {
   final int position;
   final double dx;
   final double dy;
+  final double offset;
 
   const _CardWidget(
-      {Key key, this.cardEntity, this.position, this.dx = 0, this.dy = 0})
+      {Key key,
+      this.cardEntity,
+      this.position,
+      this.dx = 0,
+      this.dy = 0,
+      this.offset})
       : super(key: key);
 
   @override
@@ -194,8 +213,10 @@ class _CardWidget extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 0.75,
       child: Transform(
-          transform: Matrix4.translationValues(dx + (12 * position.toDouble()),
-              dy + (-12 * position.toDouble()), 0),
+          transform: Matrix4.translationValues(
+              dx + (offset * position.toDouble()),
+              dy + (-offset * position.toDouble()),
+              0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Stack(

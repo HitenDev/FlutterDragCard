@@ -24,8 +24,8 @@ class PullDragWidget extends StatefulWidget {
       this.thresholdRatio = 0.2})
       : assert(dragHeight > 0),
         assert(dragRatio > 0 && dragRatio <= 1.0),
-        assert(parallaxRatio > 0 && parallaxRatio <= 1.0),
-        assert(thresholdRatio > 0 && thresholdRatio <= 1.0),
+        assert(parallaxRatio >= 0 && parallaxRatio <= 1.0),
+        assert(thresholdRatio > 0 && thresholdRatio < 1.0),
         super(key: key);
 
   @override

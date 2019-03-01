@@ -96,12 +96,13 @@ class _HomePagerState extends State<HomePager> {
   Widget build(BuildContext context) {
     return Container(
         color: Colors.white,
-        child: SafeArea(
-            child: PullDragWidget(
-          dragHeight: 140,
+        child: PullDragWidget(
+          dragHeight: 100,
+          parallaxRatio: 0.4,
+          thresholdRatio:0.3,
           header: _createHeader(),
           child: _createContent(),
-        )));
+        ));
   }
 
   _onHeaderItemClick(ToolBarEntity item) {
@@ -166,7 +167,7 @@ class _HomePagerState extends State<HomePager> {
                 padding: EdgeInsets.only(left: 20, right: 20),
                 child: _createOptMenus(),
               )),
-          CardStackWidget(cardList: _cardList)
+          CardStackWidget(cardList: _cardList,offset: 8,cardCount: 2,)
         ],
       );
     }
@@ -176,10 +177,10 @@ class _HomePagerState extends State<HomePager> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        _createMenu("assets/drawable/ic_discover_next_card_back.png", null),
+        _createMenu("assets/drawable/ic_discover_next_card_back.png", ()=>Fluttertoast.showToast(msg:"向左...😂😂")),
         _createMenu("assets/drawable/ic_discover_more.png",
             () => bus.emit("openCard", true)),
-        _createMenu("assets/drawable/ic_discover_next_card_right.png", null),
+        _createMenu("assets/drawable/ic_discover_next_card_right.png", ()=>Fluttertoast.showToast(msg:"向右...😂😂")),
       ],
     );
   }
