@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(MyApp());
 
@@ -99,7 +100,7 @@ class _HomePagerState extends State<HomePager> {
         child: PullDragWidget(
           dragHeight: 100,
           parallaxRatio: 0.4,
-          thresholdRatio:0.3,
+          thresholdRatio: 0.3,
           header: _createHeader(),
           child: _createContent(),
         ));
@@ -128,7 +129,11 @@ class _HomePagerState extends State<HomePager> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         ClipOval(
-                          child: FadeInImage.memoryNetwork(image: item.picUrl,placeholder: kTransparentImage,width: 62,height: 62),
+                          child: FadeInImage.memoryNetwork(
+                              image: item.picUrl,
+                              placeholder: kTransparentImage,
+                              width: 62,
+                              height: 62),
                         ),
                         Container(
                           height: 6,
@@ -136,15 +141,17 @@ class _HomePagerState extends State<HomePager> {
                         Text(
                           item.title,
                           style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xff333333),),
+                            fontSize: 12,
+                            color: Color(0xff333333),
+                          ),
                         )
                       ],
                     )));
           }).toList());
     }
 
-    return Container(padding:EdgeInsets.only(left: 10,right: 10),child: header);
+    return Container(
+        padding: EdgeInsets.only(left: 10, right: 10), child: header);
   }
 
   Widget _createContent() {
@@ -167,7 +174,11 @@ class _HomePagerState extends State<HomePager> {
                 padding: EdgeInsets.only(left: 20, right: 20),
                 child: _createOptMenus(),
               )),
-          CardStackWidget(cardList: _cardList,offset: 8,cardCount: 2,)
+          CardStackWidget(
+            cardList: _cardList,
+            offset: 8,
+            cardCount: 2,
+          )
         ],
       );
     }
@@ -177,24 +188,55 @@ class _HomePagerState extends State<HomePager> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        _createMenu("assets/drawable/ic_discover_next_card_back.png", ()=>Fluttertoast.showToast(msg:"向左...😂😂")),
+        _createMenu("assets/drawable/ic_discover_next_card_back.png",
+            () => Fluttertoast.showToast(msg: "coming soon...😂😂")),
         _createMenu("assets/drawable/ic_discover_more.png",
             () => bus.emit("openCard", true)),
-        _createMenu("assets/drawable/ic_discover_next_card_right.png", ()=>Fluttertoast.showToast(msg:"向右...😂😂")),
+        _createMenu("assets/drawable/ic_discover_next_card_right.png",
+            _showAboutDialog),
       ],
     );
+  }
+
+  _launchURL() async {
+    const url = 'https://github.com/HitenDev/FlutterDragCard';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  _showAboutDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("About"),
+            content: Text("Show me the code."),
+            actions: <Widget>[
+              FlatButton(child: Text("cancel"),textColor: Colors.grey,onPressed: (){
+                Navigator.of(context).pop();
+              },),
+              FlatButton(child: Text("github"),onPressed: (){
+                _launchURL();
+                Navigator.of(context).pop();
+              },)
+            ],
+          );
+        });
   }
 
   Widget _createMenu(String picUrl, GestureTapCallback onTap) {
     return Expanded(
         child: Container(
-          alignment: Alignment.center,
-          child: GestureDetector(
-            onTap: onTap,
-            child: Image.asset(
-              picUrl,
-              width: 48,
-              height: 48,
-            ))));
+            alignment: Alignment.center,
+            child: GestureDetector(
+                onTap: onTap,
+                child: Image.asset(
+                  picUrl,
+                  width: 48,
+                  height: 48,
+                ))));
   }
 }
