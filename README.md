@@ -5,7 +5,7 @@
 对了，如果大家对原生实现该兴趣的，可以看一下我之前写的这一个项目：[https://github.com/HitenDev/JKCardLayout](https://github.com/HitenDev/JKCardLayout)
 
 ## 运行效果(ios & android)
-![](https://upload-images.jianshu.io/upload_images/869487-5113c502e4f29cb0.gif?imageMogr2/auto-orient/strip)
+![](https://upload-images.jianshu.io/upload_images/869487-5520971f0e21f088.gif?imageMogr2/auto-orient/strip)
 ![](https://upload-images.jianshu.io/upload_images/869487-41cd82e1e23463ca.gif?imageMogr2/auto-orient/strip)
 ![](https://upload-images.jianshu.io/upload_images/869487-b67fe70812650ea2.png?imageMogr2/auto-orient/strip)
 ![](https://upload-images.jianshu.io/upload_images/869487-085f7fb028e7d983.png?imageMogr2/auto-orient/strip)
